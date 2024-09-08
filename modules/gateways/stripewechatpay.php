@@ -136,7 +136,9 @@ else
                         // Payment succeeded; refresh page or show success message
                         $('#payment-status').text('Payment succeeded! Redirecting...');
                         setTimeout(function() {
-                            window.location.reload(); // Refresh the page
+                            var urlParams = new URLSearchParams(window.location.search);
+                            urlParams.set('paymentsuccess', 'true');
+                            window.location.href = window.location.pathname + '?' + urlParams.toString();
                         }, 2000); // Wait 2 seconds before refreshing
                     } else {
                         $('#payment-status').text('Payment status: ' + data.status);
