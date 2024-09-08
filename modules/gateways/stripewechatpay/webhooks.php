@@ -19,7 +19,8 @@ if (!$gatewayParams['type']) {
 $stripe = new Stripe\StripeClient($gatewayParams['StripeSkLive']);
 
 if (isset($_POST['check'])) {
-		$paymentId = $_POST['check'];
+  	$sessionKey = 'pi_id' . $_POST['check'];
+	$paymentId = $_SESSION[$sessionKey];
 }
 else {
 if (!isset($_SERVER['HTTP_STRIPE_SIGNATURE'])) {
