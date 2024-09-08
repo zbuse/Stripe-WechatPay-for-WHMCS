@@ -119,14 +119,14 @@ else
 
     <script>
     $(document).ready(function() {
-        const paymentIntentId = '$_SESSION[$sessionKey]'; // 通过 PHP 后端动态生成
+        const invoiceid = '$params['invoiceid']'; // 通过 PHP 后端动态生成
         const checkPaymentStatusUrl = '".$params['systemurl']."modules/gateways/stripewechatpay/webhooks.php'; // 处理 PaymentIntent 状态的后端 PHP 脚本
 
         function checkPaymentStatus() {
             $.ajax({
                 url: checkPaymentStatusUrl,
                 method: 'POST',
-                data: { check : paymentIntentId },
+                data: { check : invoiceid },
                 success: function(response) {
                     const data = JSON.parse(response);
                     if (data.status === 'requires_action') {
