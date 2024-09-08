@@ -119,7 +119,7 @@ else
 
     <script>
     $(document).ready(function() {
-        const invoiceid = '$params['invoiceid']; // 通过 PHP 后端动态生成
+        const invoiceid = '".$params['invoiceid']."'; // 通过 PHP 后端动态生成
         const checkPaymentStatusUrl = '".$params['systemurl']."modules/gateways/stripewechatpay/webhooks.php'; // 处理 PaymentIntent 状态的后端 PHP 脚本
 
         function checkPaymentStatus() {
