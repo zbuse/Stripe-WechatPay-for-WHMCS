@@ -33,7 +33,9 @@ function stripewechatpay_config($params)
             'FriendlyName' => 'Webhook 密钥',
             'Type' => 'text',
             'Size' => 30,
-            'Description' => '填写从Stripe获取到的Webhook密钥签名',
+            'Description' => '填写从Stripe获取到的Webhook密钥签名< <br><br> <div class='alert alert-success' role='alert' style='margin-bottom: 0px;'>Webhook设置 <a href='https://dashboard.stripe.com/webhooks' target='_blank'><span class='glyphicon glyphicon-new-window'></span> Stripe webhooks</a> 侦听的事件:payment_intent.succeeded <br>
+      Stripe webhook " .$params['systemurl']."modules/gateways/stripewechatpay/webhooks.php
+               </div><style>* {font-family: Microsoft YaHei Light , Microsoft YaHei}</style>>',
         ),
         'StripeCurrency' => array(
             'FriendlyName' => '发起交易货币[可留空]',
@@ -53,9 +55,7 @@ function stripewechatpay_config($params)
             'Type' => 'text',
             'Size' => 30,
       'Default' => '0.00',
-      'Description' => "% <br><br> <div class='alert alert-success' role='alert' style='margin-bottom: 0px;'>Webhook设置 <a href='https://dashboard.stripe.com/webhooks' target='_blank'><span class='glyphicon glyphicon-new-window'></span> Stripe webhooks</a> 侦听的事件:payment_intent.succeeded <br>
-      Stripe webhook " .$params['systemurl']."modules/gateways/stripewechatpay/webhooks.php
-               </div><style>* {font-family: Microsoft YaHei Light , Microsoft YaHei}</style>"
+      'Description' => "%"
         )
     );
 }
@@ -63,18 +63,21 @@ function stripewechatpay_config($params)
 function stripewechatpay_link($params)
 {
   global $_LANG;
+  $originalAmount = isset($params['basecurrencyamount']) ? $params['basecurrencyamount'] : $params['amount']; //解决Convert To For Processing后出现入账金额不对问题
+  $StripeCurrency = empty($params['StripeCurrency']) ? "CNY" : $params['StripeCurrency'];
   $amount = ceil($params['amount'] * 100.00);
   $setcurrency = $params['currency'];
   $Methodtype = 'wechat_pay';
   $sessionKey = 'pi_id' . $params['invoiceid'];
-  if ($params['StripeCurrency']) {
-      $exchange = stripewechatpay_exchange($params['currency'], strtoupper($params['StripeCurrency']));
+  $return_url = $params['systemurl'] . 'viewinvoice.php?paymentsuccess=true&id=' . $params['invoiceid'];
+      if ($StripeCurrency !=  $setcurrency ) {
+          $exchange = stripealipay_exchange($setcurrency , strtoupper($setcurrency));
       if (!$exchange) {
           return '<div class="alert alert-danger text-center" role="alert">支付汇率错误，请联系客服进行处理</div>';
       }
-  $amount = floor($params['amount'] * $exchange * 100.00);
-  $setcurrency = $params['StripeCurrency'];
-  }
+      $setcurrency = $StripeCurrency;
+      $amount = floor($params['amount'] * $exchange * 100.00);
+      }
 
     try {
         $stripe = new Stripe\StripeClient($params['StripeSkLive']);
@@ -92,11 +95,11 @@ else
         'payment_method' => $paymentMethod->id,
         'payment_method_types' => [$Methodtype],
         'confirm' => true,
-        'return_url' => $params['systemurl'] . 'viewinvoice.php?paymentsuccess=true&id=' . $params['invoiceid'],
+        'return_url' => $return_url,
         'description' => $params['companyname'] . $_LANG['invoicenumber'] . $params['invoiceid'],
         'metadata' => [
                     'invoice_id' => $params['invoiceid'],
-                    'original_amount' => $params['amount']
+                    'original_amount' => $originalAmount,
                 ],
             ];
         $paymentIntentParams['payment_method_options']['wechat_pay']['client']='web';
@@ -167,7 +170,7 @@ function stripewechatpay_refund($params)
             'amount' => $amount * 100.00,
             'metadata' => [
                 'invoice_id' => $params['invoiceid'],
-                'original_amount' => $params['amount'],
+                'original_amount' => $originalAmount,
             ]
         ]);
         return array(
