@@ -91,8 +91,7 @@ else
         'currency' => $setcurrency, 
         'payment_method' => $paymentMethod->id,
         'payment_method_types' => [$Methodtype],
-        'confirmation_method' => 'manual', // 手动确认支付
-        'confirm' => true, // 直接确认支付
+        'confirm' => true,
         'return_url' => $params['systemurl'] . 'viewinvoice.php?paymentsuccess=true&id=' . $params['invoiceid'],
         'description' => $params['companyname'] . $_LANG['invoicenumber'] . $params['invoiceid'],
         'metadata' => [
@@ -102,10 +101,11 @@ else
             ];
         $paymentIntentParams['payment_method_options']['wechat_pay']['client']='web';
         $paymentIntent = $stripe->paymentIntents->create($paymentIntentParams);
-        if (isset($paymentIntent->id)) { $_SESSION[$sessionKey] = $paymentIntent->id; }
+    if ($paymentIntent->status == 'requires_confirmation') {
+        $paymentIntent = $stripe->paymentIntents->confirm($paymentIntent->id);
+    }
+        if (isset($paymentIntent->id)) { $_SESSION[$sessionKey] = $paymentIntent->id; } 
 }
-
-
     } catch (Exception $e) {
         return '<div class="alert alert-danger text-center" role="alert">支付网关错误，请联系客服进行处理'. $e .'</div>';
     }
