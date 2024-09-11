@@ -69,7 +69,7 @@ function stripewechatpay_link($params)
   $amount = ceil($params['amount'] * 100.00);
   $setcurrency = $params['currency'];
   $Methodtype = 'wechat_pay';
-  $sessionKey = 'pi_id' . $params['invoiceid'];
+  $sessionKey = $paymentmethod . $params['invoiceid'];
   $return_url = $params['systemurl'] . 'viewinvoice.php?paymentsuccess=true&id=' . $params['invoiceid'];
       if ($StripeCurrency !=  $setcurrency ) {
           $exchange = stripewechatpay_exchange( strtoupper($setcurrency) , strtoupper($StripeCurrency) );
