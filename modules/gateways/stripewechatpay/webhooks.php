@@ -20,7 +20,7 @@ if (!$gatewayParams['type']) {
 $stripe = new Stripe\StripeClient($gatewayParams['StripeSkLive']);
 
 if (isset($_POST['check'])) {
-  	$sessionKey = 'pi_id' . $_POST['check'];
+  	$sessionKey = $gatewayParams['paymentmethod'] . $_POST['check'];
 	$paymentId = $_SESSION[$sessionKey];
 }
 else {
