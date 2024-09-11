@@ -7,8 +7,10 @@ require_once __DIR__ . '/../../../init.php';
 require_once __DIR__ . '/../../../includes/gatewayfunctions.php';
 require_once __DIR__ . '/../../../includes/invoicefunctions.php';
 
-$gatewayName = 'stripewechatpay';
-$gatewayParams = getGatewayVariables($gatewayName);
+$gatewayParams = getGatewayVariables('stripewechatpay');
+$paymentmethod =$gatewayParam['paymentmethod'];
+$gatewayName = $gatewayParam['name'];
+
 if (!defined("WHMCS")) {
     die("This file cannot be accessed directly");
 }
@@ -37,22 +39,20 @@ try {
     );
     $paymentId = $event->data->object->id;
 } catch(\UnexpectedValueException $e) {
-    logTransaction($gatewayParams['paymentmethod'], $e, $gatewayName.': Invalid payload');
+    logTransaction($paymentmethod, $e, $gatewayName.': Invalid payload');
     http_response_code(400);
     exit();
 } catch(Stripe\Exception\SignatureVerificationException $e) {
-    logTransaction($gatewayParams['paymentmethod'], $e, $gatewayName.': Invalid signature');
+    logTransaction($paymentmethod, $e, $gatewayName.': Invalid signature');
     http_response_code(400);
     exit();
-}
+} 
 }
 
 try {
-
         $paymentIntent = $stripe->paymentIntents->retrieve($paymentId,[]);
-
         if ($paymentIntent->status == 'succeeded') {
-            $invoiceId = checkCbInvoiceID($paymentIntent['metadata']['invoice_id'], $Params['paymentmethod']);
+            $invoiceId = checkCbInvoiceID($paymentIntent['metadata']['invoice_id'], $paymentmethod);
 	    checkCbTransID($paymentId);
 		
         //Get Transactions fee
@@ -67,15 +67,12 @@ if ( strtoupper($currency['code'])  != strtoupper($balanceTransaction->currency 
         $fee = floor($balanceTransaction->fee * $feeexchange / 100.00);
 }
 
-            logTransaction($Params['paymentmethod'], $paymentIntent, $gatewayName.': Callback successful');
-             addInvoicePayment($invoiceId, $paymentId,$paymentIntent['metadata']['original_amount'],$fee,$params['paymentmethod']);
+            logTransaction($paymentmethod, $paymentIntent, $gatewayName.': Callback successful');
+             addInvoicePayment($invoiceId, $paymentId,$invoice->total,$fee,$paymentmethod);
 		}
             echo json_encode(['status' => $paymentIntent->status ]);    
 } catch (Exception $e) {
-    logTransaction($gatewayParams['paymentmethod'], $e, 'error-callback');
+    logTransaction($paymentmethod, $e, 'error-callback');
     http_response_code(400);
     echo $e;
 }
-
-
-
