@@ -72,7 +72,7 @@ function stripewechatpay_link($params)
   $sessionKey = 'pi_id' . $params['invoiceid'];
   $return_url = $params['systemurl'] . 'viewinvoice.php?paymentsuccess=true&id=' . $params['invoiceid'];
       if ($StripeCurrency !=  $setcurrency ) {
-          $exchange = stripealipay_exchange($setcurrency , strtoupper($setcurrency));
+          $exchange = stripewechatpay_exchange( strtoupper($setcurrency) , strtoupper($StripeCurrency) );
       if (!$exchange) {
           return '<div class="alert alert-danger text-center" role="alert">支付汇率错误，请联系客服进行处理</div>';
       }
