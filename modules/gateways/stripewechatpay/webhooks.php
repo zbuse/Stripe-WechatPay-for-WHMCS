@@ -1,7 +1,7 @@
 <?php
 use Stripe\StripeClient;
 use Stripe\Webhook;
-
+use WHMCS\Database\Capsule;
 
 require_once __DIR__ . '/../../../init.php';
 require_once __DIR__ . '/../../../includes/gatewayfunctions.php';
@@ -48,23 +48,29 @@ try {
 }
 
 try {
+
         $paymentIntent = $stripe->paymentIntents->retrieve($paymentId,[]);
+
         if ($paymentIntent->status == 'succeeded') {
-            $invoiceId = checkCbInvoiceID($paymentIntent['metadata']['invoice_id'], $gatewayParams['paymentmethod']);
-			checkCbTransID($paymentId);
-       //     echo "Pass the checkCbTransID check\n";
-            logTransaction($gatewayParams['paymentmethod'], $paymentIntent, $gatewayName.': Callback successful');
-            addInvoicePayment(
-                $invoiceId,
-                $paymentId,
-                $paymentIntent['metadata']['original_amount'],
-                0,
-                $params['paymentmethod']
-            );
-//            echo "succeeded\n";
-	}
-	    echo json_encode(['status' => $paymentIntent->status ]);
-    
+            $invoiceId = checkCbInvoiceID($paymentIntent['metadata']['invoice_id'], $Params['paymentmethod']);
+	    checkCbTransID($paymentId);
+		
+        //Get Transactions fee
+        $charge = $stripe->charges->retrieve($paymentIntent->latest_charge, []);
+        $balanceTransaction = $stripe->balanceTransactions->retrieve($charge->balance_transaction, []);
+        $fee = $balanceTransaction->fee / 100.00;
+	$invoice = Capsule::table('tblinvoices')->where('id', $invoiceId)->first();  //获取账单信息和用户 id
+	$currency = getCurrency( $invoice->userid ); //获取用户使用货币信息
+		
+if ( strtoupper($currency['code'])  != strtoupper($balanceTransaction->currency )) {
+        $feeexchange = stripewechatpay_exchange($currency['code'], strtoupper($balanceTransaction->currency ));
+        $fee = floor($balanceTransaction->fee * $feeexchange / 100.00);
+}
+
+            logTransaction($Params['paymentmethod'], $paymentIntent, $gatewayName.': Callback successful');
+             addInvoicePayment($invoiceId, $paymentId,$paymentIntent['metadata']['original_amount'],$fee,$params['paymentmethod']);
+		}
+            echo json_encode(['status' => $paymentIntent->status ]);    
 } catch (Exception $e) {
     logTransaction($gatewayParams['paymentmethod'], $e, 'error-callback');
     http_response_code(400);
