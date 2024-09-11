@@ -8,7 +8,6 @@ require_once __DIR__ . '/../../../includes/gatewayfunctions.php';
 require_once __DIR__ . '/../../../includes/invoicefunctions.php';
 
 $gatewayParams = getGatewayVariables('stripewechatpay');
-$paymentmethod =$gatewayParam['paymentmethod'];
 $gatewayName = $gatewayParam['name'];
 
 if (!defined("WHMCS")) {
@@ -39,11 +38,11 @@ try {
     );
     $paymentId = $event->data->object->id;
 } catch(\UnexpectedValueException $e) {
-    logTransaction($paymentmethod, $e, $gatewayName.': Invalid payload');
+    logTransaction($gatewayName, $e, $gatewayName.': Invalid payload');
     http_response_code(400);
     exit();
 } catch(Stripe\Exception\SignatureVerificationException $e) {
-    logTransaction($paymentmethod, $e, $gatewayName.': Invalid signature');
+    logTransaction($gatewayName, $e, $gatewayName.': Invalid signature');
     http_response_code(400);
     exit();
 } 
@@ -52,7 +51,7 @@ try {
 try {
         $paymentIntent = $stripe->paymentIntents->retrieve($paymentId,[]);
         if ($paymentIntent->status == 'succeeded') {
-            $invoiceId = checkCbInvoiceID($paymentIntent['metadata']['invoice_id'], $paymentmethod);
+            $invoiceId = checkCbInvoiceID($paymentIntent['metadata']['invoice_id'], $gatewayName);
 	    checkCbTransID($paymentId);
 		
         //Get Transactions fee
@@ -67,12 +66,12 @@ if ( strtoupper($currency['code'])  != strtoupper($balanceTransaction->currency 
         $fee = floor($balanceTransaction->fee * $feeexchange / 100.00);
 }
 
-            logTransaction($paymentmethod, $paymentIntent, $gatewayName.': Callback successful');
-             addInvoicePayment($invoiceId, $paymentId,$invoice->total,$fee,$paymentmethod);
+            logTransaction($gatewayName, $paymentIntent, $gatewayName.': Callback successful');
+             addInvoicePayment($invoiceId, $paymentId,$invoice->total,$fee,$gatewayName);
 		}
             echo json_encode(['status' => $paymentIntent->status ]);    
 } catch (Exception $e) {
-    logTransaction($paymentmethod, $e, 'error-callback');
+    logTransaction($gatewayName, $e, 'error-callback');
     http_response_code(400);
     echo $e;
 }
