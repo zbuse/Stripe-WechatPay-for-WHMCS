@@ -67,7 +67,7 @@ if ( strtoupper($currency['code'])  != strtoupper($balanceTransaction->currency 
 }
 
             logTransaction($gatewayName, $paymentIntent, $gatewayName.': Callback successful');
-             addInvoicePayment($invoiceId, $paymentId,$paymentIntent['metadata']['original_amount'],$fee,$gatewayName);
+             addInvoicePayment($invoiceId, $paymentId,$paymentIntent['metadata']['original_amount'],$fee,$gatewayParams['paymentmethod']);
 		}
             echo json_encode(['status' => $paymentIntent->status ]);    
 } catch (Exception $e) {
