@@ -38,9 +38,10 @@ function stripewechatpay_config($params)
                </div><style>* {font-family: Microsoft YaHei Light , Microsoft YaHei}</style>>',
         ),
         'StripeCurrency' => array(
-            'FriendlyName' => '发起交易货币[可留空]',
+            'FriendlyName' => '发起交易货币[默认 CNY]',
             'Type' => 'text',
             'Size' => 30,
+	    "Default" => "CNY",
             'Description' => '默认获取WHMCS的货币，与您设置的发起交易货币进行汇率转换，再使用转换后的价格和货币向Stripe请求',
         ),
         'RefundFixed' => array(
