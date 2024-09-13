@@ -63,6 +63,14 @@ catch(Stripe\Exception\SignatureVerificationException $e) {
 }
 
 try {
+        $stripe = new Stripe\StripeClient($gatewayParams['StripeSkLive']);
+        $paymentIntent = $stripe->paymentIntents->retrieve($paymentId,[]);
+}
+catch (Exception $e) {
+  echo $e->getMessage;
+}
+
+try {
     if( $event->type == 'payment_intent.succeeded' || $paymentIntent->status == 'succeeded' ) {
     //$event->type == 'payment_intent.succeeded'
     //$paymentIntent->status == 'succeeded'
