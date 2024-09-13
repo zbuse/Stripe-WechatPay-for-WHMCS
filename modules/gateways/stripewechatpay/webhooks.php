@@ -1,4 +1,5 @@
 <?php
+session_start();
 use Stripe\StripeClient;
 use Stripe\Webhook;
 use WHMCS\Database\Capsule;
@@ -33,7 +34,6 @@ function exchange($from, $to) {
 
 try {
 if (isset($_POST['check'])) {
-	session_start();
   	$sessionKey = $gatewayParams['paymentmethod'] . $_POST['check'];
 	$paymentId = $_SESSION[$sessionKey];
 }
