@@ -47,8 +47,6 @@ if (!isset($_SERVER['HTTP_STRIPE_SIGNATURE'])) {
         $paymentId = $event->data->object->id;
         $status = $event->type;
 }
-	$stripe = new Stripe\StripeClient($gatewayParams['StripeSkLive']);
-	$paymentIntent = $stripe->paymentIntents->retrieve($paymentId,[]);
 }
 catch(\UnexpectedValueException $e) {
     logTransaction($gatewayName, $e, $gatewayName.': Invalid payload');
