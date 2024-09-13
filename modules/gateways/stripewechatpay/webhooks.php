@@ -16,11 +16,6 @@ if (!defined("WHMCS")) {
 if (!$gatewayParams['type']) {
     die("Module Not Activated");
 }
-
-
-if (!isset($_SERVER['HTTP_STRIPE_SIGNATURE'])) {
-    die("错误请求");
-}
 	
 function exchange($from, $to) {
 	try {
@@ -41,7 +36,10 @@ if (isset($_POST['check'])) {
   	$sessionKey = $gatewayParams['paymentmethod'] . $_POST['check'];
 	$paymentId = $_SESSION[$sessionKey];
 }
-else{
+else{	
+if (!isset($_SERVER['HTTP_STRIPE_SIGNATURE'])) {
+    die("错误请求");
+}
 	$event = null;
         $event = Webhook::constructEvent( @file_get_contents('php://input') ,  $_SERVER['HTTP_STRIPE_SIGNATURE'] , $gatewayParams['StripeWebhookKey']);
         $paymentId = $event->data->object->id;
