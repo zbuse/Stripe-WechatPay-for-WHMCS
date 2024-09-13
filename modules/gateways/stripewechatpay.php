@@ -106,10 +106,11 @@ else
             ];
         $paymentIntentParams['payment_method_options']['wechat_pay']['client']='web';
         $paymentIntent = $stripe->paymentIntents->create($paymentIntentParams);
+	$_SESSION[$sessionKey] = $paymentIntent->id;
     if ($paymentIntent->status == 'requires_confirmation') {
         $paymentIntent = $stripe->paymentIntents->confirm($paymentIntent->id);
     }
-        if (isset($paymentIntent->id)) { $_SESSION[$sessionKey] = $paymentIntent->id; } 
+
 }
     } catch (Exception $e) {
         return '<div class="alert alert-danger text-center" role="alert">支付网关错误，请联系客服进行处理'. $e->getMessage() .'</div>';
