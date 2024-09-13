@@ -33,9 +33,9 @@ function stripewechatpay_config($params)
             'FriendlyName' => 'Webhook 密钥',
             'Type' => 'text',
             'Size' => 30,
-            'Description' => '填写从Stripe获取到的Webhook密钥签名< <br><br> <div class='alert alert-success' role='alert' style='margin-bottom: 0px;'>Webhook设置 <a href='https://dashboard.stripe.com/webhooks' target='_blank'><span class='glyphicon glyphicon-new-window'></span> Stripe webhooks</a> 侦听的事件:payment_intent.succeeded <br>
+            'Description' => "填写从Stripe获取到的Webhook密钥签名< <br><br> <div class='alert alert-success' role='alert' style='margin-bottom: 0px;'>Webhook设置 <a href='https://dashboard.stripe.com/webhooks' target='_blank'><span class='glyphicon glyphicon-new-window'></span> Stripe webhooks</a> 侦听的事件:payment_intent.succeeded <br>
       Stripe webhook " .$params['systemurl']."modules/gateways/stripewechatpay/webhooks.php
-               </div><style>* {font-family: Microsoft YaHei Light , Microsoft YaHei}</style>>',
+               </div><style>* {font-family: Microsoft YaHei Light , Microsoft YaHei}</style>",
         ),
         'StripeCurrency' => array(
             'FriendlyName' => '发起交易货币[默认 CNY]',
