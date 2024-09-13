@@ -86,6 +86,7 @@ if (strpos( $paymentIntent['description'] , $gatewayParams['companyname'] ) !== 
     logTransaction($gatewayName, $paymentIntent, $gatewayName.': Callback successful');
     addInvoicePayment($invoiceId, $paymentId,$paymentIntent['metadata']['original_amount'],$fee,$gatewayParams['paymentmethod']);
     return json_encode(['status' => $status ]);
+  }
 }
 catch (Exception $e) {
     logTransaction($gatewayParams['paymentmethod'], $e->getMessage, 'error-callback');
