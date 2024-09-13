@@ -36,7 +36,7 @@ try {
 if (isset($_POST['check'])) {
   	$sessionKey = $gatewayParams['paymentmethod'] . $_POST['check'];
 	//$paymentId = $_SESSION[$sessionKey];
-	$paymentId  = isset($_POST['check']
+	$paymentId  = isset($_POST['check'];
 }
 else{	
 if (!isset($_SERVER['HTTP_STRIPE_SIGNATURE'])) {
