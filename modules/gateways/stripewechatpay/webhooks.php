@@ -43,16 +43,9 @@ function exchange($from, $to) {
 	
 try {
     $event = null;
-    if (isset($_POST['check'])) {
-        // ajax 查询
-        $sessionKey = $gatewayParams['paymentmethod'] . $_POST['check'];
-        session_start();
-        $paymentId = $_SESSION[$sessionKey];
-    } else {
         $event = Webhook::constructEvent( @file_get_contents('php://input') ,  $_SERVER['HTTP_STRIPE_SIGNATURE'] , $gatewayParams['StripeWebhookKey']);
         $paymentId = $event->data->object->id;
         $status = $event->type;
-    }
 }
 catch(\UnexpectedValueException $e) {
     logTransaction($gatewayName, $e, $gatewayName.': Invalid payload');
@@ -78,7 +71,8 @@ if (strpos( $paymentIntent['description'] , $gatewayParams['companyname'] ) !== 
 checkCbTransID($paymentId);    //检查到账单已入账则终止运行
 $invoiceId = checkCbInvoiceID($paymentIntent['metadata']['invoice_id'], $gatewayName);
 
-try ( $status == 'payment_intent.succeeded' || $status == 'succeeded' ) {
+try {
+if ( $status == 'payment_intent.succeeded' || $status == 'succeeded') {
     //$event->type == 'payment_intent.succeeded'
     //$paymentIntent->status == 'succeeded'
 
