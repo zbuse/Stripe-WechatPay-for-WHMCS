@@ -8,7 +8,7 @@ require_once __DIR__ . '/../../../includes/gatewayfunctions.php';
 require_once __DIR__ . '/../../../includes/invoicefunctions.php';
 
 $gatewayParams = getGatewayVariables('stripewechatpay');
-$gatewayName = $gatewayParam['name'];
+$gatewayName = $gatewayParams['name'];
 
 if (!defined("WHMCS")) {
     die("This file cannot be accessed directly");
