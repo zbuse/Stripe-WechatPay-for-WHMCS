@@ -17,13 +17,7 @@ if (!$gatewayParams['type']) {
     die("Module Not Activated");
 }
 
-$stripe = new Stripe\StripeClient($gatewayParams['StripeSkLive']);
 
-if (isset($_POST['check'])) {
-  	$sessionKey = $gatewayParams['paymentmethod'] . $_POST['check'];
-	$paymentId = $_SESSION[$sessionKey];
-}
-else {
 if (!isset($_SERVER['HTTP_STRIPE_SIGNATURE'])) {
     die("错误请求");
 }
@@ -40,12 +34,20 @@ function exchange($from, $to) {
 		return "Exchange error: " . $e->getMessage;
 	}
 }
-	
+
+
 try {
-    $event = null;
+if (isset($_POST['check'])) {
+  	$sessionKey = $gatewayParams['paymentmethod'] . $_POST['check'];
+	$paymentId = $_SESSION[$sessionKey];
+}
+else{
+	$event = null;
         $event = Webhook::constructEvent( @file_get_contents('php://input') ,  $_SERVER['HTTP_STRIPE_SIGNATURE'] , $gatewayParams['StripeWebhookKey']);
         $paymentId = $event->data->object->id;
         $status = $event->type;
+}
+	$paymentIntent = $stripe->paymentIntents->retrieve($paymentId,[]);
 }
 catch(\UnexpectedValueException $e) {
     logTransaction($gatewayName, $e, $gatewayName.': Invalid payload');
@@ -65,9 +67,6 @@ try {
     //$event->type == 'payment_intent.succeeded'
     //$paymentIntent->status == 'succeeded'
 	    
-  $stripe = new Stripe\StripeClient($gatewayParams['StripeSkLive']);
-  $paymentIntent = $stripe->paymentIntents->retrieve($paymentId,[]);
-
 //验证回传信息避免多个站点的webhook混乱，返回状态错误。
 if (strpos( $paymentIntent['description'] , $gatewayParams['companyname'] ) !== false) {  die("nothing to do"); }   
    checkCbTransID($paymentId);    //检查到账单已入账则终止运行
