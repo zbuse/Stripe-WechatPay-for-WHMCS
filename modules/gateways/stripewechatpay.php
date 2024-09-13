@@ -101,6 +101,7 @@ else
         'metadata' => [
                     'invoice_id' => $params['invoiceid'],
                     'original_amount' => $originalAmount,
+		    'description' => $params['companyname'],
                 ],
             ];
         $paymentIntentParams['payment_method_options']['wechat_pay']['client']='web';
