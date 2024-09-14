@@ -117,7 +117,7 @@ if ($paymentIntent->status == 'requires_action') {
 
     return "
         <img width='200' src='$url'>
-        <div id='payment-status'>等待支付状态中....</div>
+        <div id='payment-status'>等待支付状态中....（1分钟检查一次）</div>
         <script>
         $(document).ready(function() {
             const transId = '$transId'; // 获取 PaymentIntent ID
@@ -132,7 +132,7 @@ if ($paymentIntent->status == 'requires_action') {
                         const data = JSON.parse(response);
                         if (data.status !== 'succeeded') {
                             // Payment is not succeeded; retry checking
-                            setTimeout(checkPaymentStatus, 5000); // Retry every 5 seconds
+                            setTimeout(checkPaymentStatus, 60000); // Retry every 1 minute
                         } else {
                             // Payment succeeded; refresh page or show success message
                             $('#payment-status').text('支付完成，正在跳转....');
