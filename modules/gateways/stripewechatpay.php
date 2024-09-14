@@ -69,6 +69,7 @@ function stripewechatpay_link($params)
   $amount = ceil($params['amount'] * 100.00);
   $setcurrency = $params['currency'];
   $Methodtype = 'wechat_pay';
+  $paymentmethod = $params['paymentmethod'];
   $sessionKey = $paymentmethod . $params['invoiceid'];
   $return_url = $params['systemurl'] . 'viewinvoice.php?paymentsuccess=true&id=' . $params['invoiceid'];
       if ($StripeCurrency !=  $setcurrency ) {
@@ -92,7 +93,7 @@ else
         $paymentMethod = $stripe->paymentMethods->create(['type' => $Methodtype]);
         $paymentIntentParams = [
         'amount' => $amount,
-        'currency' => $setcurrency, 
+        'currency' => $setcurrency,
         'payment_method' => $paymentMethod->id,
         'payment_method_types' => [$Methodtype],
         'confirm' => true,
@@ -106,7 +107,7 @@ else
             ];
         $paymentIntentParams['payment_method_options']['wechat_pay']['client']='web';
         $paymentIntent = $stripe->paymentIntents->create($paymentIntentParams);
-	$_SESSION[$sessionKey] = $paymentIntent->id;
+	if (!isset($_SESSION[$sessionKey])) {	$_SESSION[$sessionKey] = $paymentIntent->id; }
     if ($paymentIntent->status == 'requires_confirmation') {
         $paymentIntent = $stripe->paymentIntents->confirm($paymentIntent->id);
     }
@@ -125,7 +126,7 @@ else
 
     <script>
     $(document).ready(function() {
-        const invoiceid = '".$paymentIntent->id."'; // 
+        const invoiceid = '".$paymentIntent->id."'; //
         const checkPaymentStatusUrl = '".$params['systemurl']."modules/gateways/stripewechatpay/webhooks.php'; // 处理 PaymentIntent 状态的后端 PHP 脚本
 
         function checkPaymentStatus() {
