@@ -72,8 +72,8 @@ function stripewechatpay_link($params)
   $paymentmethod = $params['paymentmethod'];
   $sessionKey = $paymentmethod . $params['invoiceid'];
   $return_url = $params['systemurl'] . 'viewinvoice.php?paymentsuccess=true&id=' . $params['invoiceid'];
-      if (strtoupper($StripeCurrency) !=  strtoupper(($setcurrency) ) {
-          $exchange = stripewechatpay_exchange($setcurrency , $StripeCurrency );
+      if (strtoupper($StripeCurrency) !=  strtoupper($setcurrency) ) {
+          $exchange = stripewechatpay_exchange( $setcurrency , $StripeCurrency );
       if (!$exchange) {
           return '<div class="alert alert-danger text-center" role="alert">支付汇率错误，请联系客服进行处理</div>';
       }
@@ -94,7 +94,7 @@ function stripewechatpay_link($params)
         'description' => $params['companyname'] . $_LANG['invoicenumber'] . $params['invoiceid'],
         'metadata' => [
           'invoice_id' => $params['invoiceid'],
-          'original_amount' => $originalAmount
+          'original_amount' => $originalAmount,
           'description' => $params['companyname'],
             ]];
 	    
