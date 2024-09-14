@@ -126,14 +126,14 @@ else
 
     <script>
     $(document).ready(function() {
-        const invoiceid = '".$paymentIntent->id."'; //
+        const transId = '".$paymentIntent->id."'; //
         const checkPaymentStatusUrl = '".$params['systemurl']."modules/gateways/stripewechatpay/webhooks.php'; // 处理 PaymentIntent 状态的后端 PHP 脚本
 
         function checkPaymentStatus() {
             $.ajax({
                 url: checkPaymentStatusUrl,
                 method: 'POST',
-                data: { check : invoiceid },
+                data: { check : transId },
                 success: function(response) {
                     const data = JSON.parse(response);
                     if (data.status === 'requires_action') {
