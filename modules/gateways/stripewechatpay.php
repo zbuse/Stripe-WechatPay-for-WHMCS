@@ -66,14 +66,14 @@ function stripewechatpay_link($params)
   global $_LANG;
   $originalAmount = isset($params['basecurrencyamount']) ? $params['basecurrencyamount'] : $params['amount']; //解决Convert To For Processing后出现入账金额不对问题
   $StripeCurrency = empty($params['StripeCurrency']) ? "CNY" : $params['StripeCurrency'];
-  $amount = ceil($params['amount'] * 100.00);
+  $amount = abs(ceil($params['amount'] * 100.00));
   $setcurrency = $params['currency'];
   $Methodtype = 'wechat_pay';
   $paymentmethod = $params['paymentmethod'];
   $sessionKey = $paymentmethod . $params['invoiceid'];
   $return_url = $params['systemurl'] . 'viewinvoice.php?paymentsuccess=true&id=' . $params['invoiceid'];
-      if ($StripeCurrency !=  $setcurrency ) {
-          $exchange = stripewechatpay_exchange( strtoupper($setcurrency) , strtoupper($StripeCurrency) );
+      if (strtoupper($StripeCurrency) !=  strtoupper(($setcurrency) ) {
+          $exchange = stripewechatpay_exchange($setcurrency , $StripeCurrency );
       if (!$exchange) {
           return '<div class="alert alert-danger text-center" role="alert">支付汇率错误，请联系客服进行处理</div>';
       }
@@ -83,85 +83,74 @@ function stripewechatpay_link($params)
 
     try {
         $stripe = new Stripe\StripeClient($params['StripeSkLive']);
+        $paymentIntent = null;
+        $paymentMethod = $stripe->paymentMethods->create(['type' => $Methodtype]);
+        $paymentIntentParams = [
+        'amount' => $amount,
+        'currency' => $setcurrency ,
+        'payment_method_types' => ['card','alipay','wechat_pay',],
+        'payment_method_types' =>$StripeMethodType ,
+        'payment_method_options' => ['card' => ['request_three_d_secure' => 'automatic',],'wechat_pay' => ['client' => 'web',]],
+        'description' => $params['companyname'] . $_LANG['invoicenumber'] . $params['invoiceid'],
+        'metadata' => [
+          'invoice_id' => $params['invoiceid'],
+          'original_amount' => $originalAmount
+          'description' => $params['companyname'],
+            ]];
+	    
 if (isset($_SESSION[$sessionKey])) {
     $paymentIntentId = $_SESSION[$sessionKey];
     $paymentIntent = $stripe->paymentIntents->retrieve($paymentIntentId);
 }
 else
 {
-        $paymentIntent = null;
-        $paymentMethod = $stripe->paymentMethods->create(['type' => $Methodtype]);
-        $paymentIntentParams = [
-        'amount' => $amount,
-        'currency' => $setcurrency,
-        'payment_method' => $paymentMethod->id,
-        'payment_method_types' => [$Methodtype],
-        'confirm' => true,
-        'return_url' => $return_url,
-        'description' => $params['companyname'] . $_LANG['invoicenumber'] . $params['invoiceid'],
-        'metadata' => [
-                    'invoice_id' => $params['invoiceid'],
-                    'original_amount' => $originalAmount,
-		    'description' => $params['companyname'],
-                ],
-            ];
-        $paymentIntentParams['payment_method_options']['wechat_pay']['client']='web';
         $paymentIntent = $stripe->paymentIntents->create($paymentIntentParams);
-	if (!isset($_SESSION[$sessionKey])) {	$_SESSION[$sessionKey] = $paymentIntent->id; }
-    if ($paymentIntent->status == 'requires_confirmation') {
-        $paymentIntent = $stripe->paymentIntents->confirm($paymentIntent->id);
-    }
-
-}
-    } catch (Exception $e) {
-        return '<div class="alert alert-danger text-center" role="alert">支付网关错误，请联系客服进行处理'. $e->getMessage() .'</div>';
-    }
-
+        $_SESSION[$sessionKey] = $paymentIntent->id; 	
+    if ($paymentIntent->status == 'requires_confirmation') {  $paymentIntent = $stripe->paymentIntents->confirm($paymentIntent->id); }
     if ($paymentIntent->status == 'requires_action') {
         $url = $paymentIntent->next_action->wechat_pay_display_qr_code->image_data_url;
     }
         return "
 	<img width='200' src='$url'>
     <div id='payment-status'>Checking payment status...</div>
-
-    <script>
-    $(document).ready(function() {
-        const transId = '".$paymentIntent->id."'; //
-        const checkPaymentStatusUrl = '".$params['systemurl']."modules/gateways/stripewechatpay/webhooks.php'; // 处理 PaymentIntent 状态的后端 PHP 脚本
-
-        function checkPaymentStatus() {
-            $.ajax({
-                url: checkPaymentStatusUrl,
-                method: 'POST',
-                data: { check : transId },
-                success: function(response) {
-                    const data = JSON.parse(response);
-                    if (data.status === 'requires_action') {
-                        // Payment requires further action; retry checking
-                        setTimeout(checkPaymentStatus, 5000); // Retry every 5 seconds
-                    } else if (data.status === 'succeeded') {
-                        // Payment succeeded; refresh page or show success message
-                        $('#payment-status').text('Payment succeeded! Redirecting...');
-                        setTimeout(function() {
-                            var urlParams = new URLSearchParams(window.location.search);
-                            urlParams.set('paymentsuccess', 'true');
-                            window.location.href = window.location.pathname + '?' + urlParams.toString();
-                        }, 2000); // Wait 2 seconds before refreshing
-                    } else {
-                        $('#payment-status').text('Payment status: ' + data.status);
-                    }
-                },
-                error: function() {
-                    $('#payment-status').text('Error checking payment status.');
+<script>
+$(document).ready(function() {
+    const transId = "<?= $paymentIntent->id ?>"; // 获取transId
+    const checkPaymentStatusUrl = "<?= $params['systemurl'] ?>modules/gateways/stripewechatpay/webhooks.php"; // 获取transId状态的后端PHP脚本
+    function checkPaymentStatus() {
+        $.ajax({
+            url: checkPaymentStatusUrl,
+            method: "POST",
+            data: { check: transId },
+            success: function(response) {
+                const data = JSON.parse(response);
+                if (data.status !== "succeeded") {
+                    // Payment is not succeeded; retry checking
+                    setTimeout(checkPaymentStatus, 5000); // Retry every 5 seconds
+                } else {
+                    // Payment succeeded; refresh page or show success message
+                    $("#payment-status").text("Payment succeeded! Redirecting...");
+                    setTimeout(function() {
+                        var urlParams = new URLSearchParams(window.location.search);
+                        urlParams.set("paymentsuccess", "true");
+                        window.location.href = window.location.pathname + "?" + urlParams.toString();
+                    }, 2000); // Wait 2 seconds before refreshing
                 }
-            });
-        }
-        // Start checking payment status
-        checkPaymentStatus();
-    });
-    </script>
+            },
+            error: function() {
+                $("#payment-status").text("Error checking payment status.");
+            }
+        });
+    }
+    // Start checking payment status
+    checkPaymentStatus();
+});
+</script>
         ";
-
+}
+    } catch (Exception $e) {
+        return '<div class="alert alert-danger text-center" role="alert">支付网关错误，请联系客服进行处理'. $e->getMessage() .'</div>';
+    }
     return '<div class="alert alert-danger text-center" role="alert">发生错误，请创建工单联系客服处理</div>';
 }
 function stripewechatpay_refund($params)
