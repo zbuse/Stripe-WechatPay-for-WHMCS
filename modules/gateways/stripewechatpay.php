@@ -115,7 +115,7 @@ else
     <div id='payment-status'>Checking payment status...</div>
 <script>
 $(document).ready(function() {
-    const transId = "<?= $paymentIntent->id ?>"; // 获取transId
+    const transId = "'. $paymentIntent->id .'"; //set transId
     const checkPaymentStatusUrl = "<?= $params['systemurl'] ?>modules/gateways/stripewechatpay/webhooks.php"; // 获取transId状态的后端PHP脚本
     function checkPaymentStatus() {
         $.ajax({
