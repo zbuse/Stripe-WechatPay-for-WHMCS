@@ -109,16 +109,15 @@ else
     } catch (Exception $e) {
         return '<div class="alert alert-danger text-center" role="alert">支付网关错误，请联系客服进行处理'. $e->getMessage() .'</div>';
     }
-
 	
-	if ($paymentIntent->status == 'requires_action') {
+if ($paymentIntent->status == 'requires_action') {
     $url = $paymentIntent->next_action->wechat_pay_display_qr_code->image_data_url;
     $transId = $paymentIntent->id;
     $checkPaymentStatusUrl = $params['systemurl'] . "modules/gateways/stripewechatpay/webhooks.php";
 
     return "
         <img width='200' src='$url'>
-        <div id='payment-status'>Checking payment status...</div>
+        <div id='payment-status'>等待支付状态中....</div>
         <script>
         $(document).ready(function() {
             const transId = '$transId'; // 获取 PaymentIntent ID
@@ -136,7 +135,7 @@ else
                             setTimeout(checkPaymentStatus, 5000); // Retry every 5 seconds
                         } else {
                             // Payment succeeded; refresh page or show success message
-                            $('#payment-status').text('Payment succeeded! Redirecting...');
+                            $('#payment-status').text('支付完成，正在跳转....');
                             setTimeout(function() {
                                 var urlParams = new URLSearchParams(window.location.search);
                                 urlParams.set('paymentsuccess', 'true');
